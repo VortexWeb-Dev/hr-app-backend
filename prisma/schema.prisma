@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ========================
+// ✅ Attendance Logs
+// ========================
+model AttendanceLog {
+  id             Int      @id @default(autoincrement())
+  user_bitrix_id Int
+  log_type       String   // "check_in" or "check_out"
+  log_time       DateTime @default(now())
+}
+
+// ========================
+// ✅ Company Documents
+// ========================
+model CompanyDocument {
+  id               Int      @id @default(autoincrement())
+  title            String
+  category         String
+  file_url         String
+  uploaded_by_bitrix_id Int
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+}
+
+// ========================
+// ✅ Requests Table
+// ========================
+model Request {
+  id                     Int      @id @default(autoincrement())
+  requester_bitrix_id    Int
+  assigned_to_bitrix_id  Int
+  request_type           String   // e.g., "Leave Application", "NOC", "General Request"
+  status                 String   @default("Manager Pending")
+
+  address_to             String?
+  purpose                String?
+  country                String?
+  noc_reason             String?
+  leave_type             String?
+  start_date             DateTime?
+  end_date               DateTime?
+
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
+}
+
+model LeaveRequest {
+  id                     Int      @id @default(autoincrement())
+  requester_bitrix_id    Int
+  assigned_to_bitrix_id  Int
+  leave_type             String
+  reason                 String?
+  request_type           String   @default("Leave Application")
+  status                 String   @default("Manager Pending")
+  start_date             DateTime
+  end_date               DateTime
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
+
+  requester User @relation(fields: [requester_bitrix_id], references: [bitrix_id])
+}
+
+model User {
+  bitrix_id      Int           @id
+  name           String
+  email          String?
+  leaveRequests  LeaveRequest[]
+}
+
+// course
+model Course {
+  id          Int      @id @default(autoincrement())
+  bitrixId    Int?     @unique
+  title       String
+  description String?
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  created_by_bitrix_id Int
+
+  // Proper relation with Lesson
+  lessons     Lesson[] @relation("CourseLessons")
+}
+
+model Lesson {
+  id          Int      @id @default(autoincrement())
+  bitrixId    Int?     @unique
+  title       String
+  description String?
+  content     String?
+  video_url   String?
+  sequence    Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courseId    Int
+  course      Course   @relation("CourseLessons", fields: [courseId], references: [id])
+}
+
+
+// ========================
+// ✅ Enrollment & Lesson Progress
+// ========================
+model Enrollment {
+  id         Int      @id @default(autoincrement())
+  user_bitrix_id Int
+  course_bitrix_id Int
+  enrolled_at DateTime @default(now())
+}
+
+model UserLessonProgress {
+  id            Int      @id @default(autoincrement())
+  enrollment_id Int
+  lesson_bitrix_id Int
+  completed_at  DateTime?
+}
+
+// ========================
+// ✅ Onboarding / Offboarding
+// ========================
+model OnboardingProcess {
+  id            Int      @id @default(autoincrement())
+  user_bitrix_id Int      @unique
+  status        String   @default("Not Started")
+  start_date    DateTime?
+  end_date      DateTime?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
+model OffboardingProcess {
+  id               Int      @id @default(autoincrement())
+  user_bitrix_id    Int      @unique
+  last_working_day  DateTime
+  status            String
+  progress          Int      @default(0)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+}
+
+// ========================
+// ✅ Process Tasks
+// ========================
+model ProcessTask {
+  id            Int      @id @default(autoincrement())
+  process_type  String   // "onboarding" | "offboarding"
+  process_id    Int
+  task_id       Int
+  is_completed  Boolean  @default(false)
+  completed_at  DateTime?
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  created_at  DateTime @default(now())
+}
+
+// ========================
+// ✅ Orientation Sessions
+// ========================
+model OrientationSession {
+  id                    Int      @id @default(autoincrement())
+  title                 String
+  session_date          DateTime
+  assigned_hr_bitrix_id Int
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+}
+
+// ========================
+// ✅ Events
+// ========================
+model Event {
+  id            Int      @id @default(autoincrement())
+  title         String
+  description   String?
+  event_type    String
+  user_bitrix_id Int?
+  event_date    DateTime
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
