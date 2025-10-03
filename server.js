@@ -16,6 +16,8 @@ const leaveRoutes = require('./routes/leaveRoutes');
 const offboarding = require('./routes/offboardingRoutes'); 
 const onboarding = require('./routes/onboardingRoutes');   
 const trainingPathRoutes = require('./routes/trainingPathRoutes');
+const userRoutes = require('./routes/userRoutes'); 
+
 
 dotenv.config();
 
@@ -44,6 +46,7 @@ app.use('/api/approvals', approvalRoutes);
 app.use('/api/directory', directoryRoutes);   
 app.use('/api/leave', leaveRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/users', userRoutes); 
 
 
 // Start server
